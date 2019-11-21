@@ -13,7 +13,7 @@ let blackHole = {x: turtle.canvas.width/2, y: turtle.canvas.height/2};
 
 let drawBlackHole = function(){
 	turtle.jumpTo(blackHole.x, blackHole.y);
-	turtle.setColor(turtle.makeColor(255,128,255));
+	turtle.setColor(turtle.makeColor(128,0,128));
 	turtle.circle(2+Math.random()*4);
 }
 
@@ -29,7 +29,7 @@ let blackHolePull = function(x, y, speedX, speedY){
 let missiles = [];
 
 let ship = {x: 20, y: 20, angle: 0, speedX: 0, speedY: 0, throttle: 0,
-color: turtle.makeColor(60,197,24), turn:0, firing: false, draw: function(now){
+color: turtle.makeColor(60,197,24), turn:0, firing: false, draw: function(){
 	// be affected by gravity
 	let acceleration = blackHolePull(this.x, this.y, this.speedX, this.speedY);
 	this.speedX = acceleration.speedX;
@@ -120,6 +120,25 @@ let ship2 = Object.assign({}, ship);
 ship2.x = 340;
 ship2.y = 340;
 ship2.angle = 180;
+
+let stars = []
+
+for(let i = 0; i<100; i++){
+	let newStar = {x: Math.random()*turtle.canvas.width,
+	               y: Math.random()*turtle.canvas.height};
+	stars.push(newStar);
+}
+
+let drawStars = function(){
+	turtle.setColor(white);
+	for(let i=0; i<stars.length; i++){
+		let star = stars[i];
+		turtle.jumpTo(star.x, star.y);
+		if(! turtle.colorsEqual(turtle.getCanvasColor(), ship.color)){
+			turtle.tapPen();
+		}
+	}
+}
 
 let drawMissiles = function(now){
 	for(let i=0; i<missiles.length; i++){
@@ -220,7 +239,7 @@ let gameFrame = function(now) {
     ship2.draw(now)
     drawMissiles(now);
     drawBlackHole();
-
+    drawStars();
 	// put pixels on the screen -- must be last!
 	turtle.show();
 };
