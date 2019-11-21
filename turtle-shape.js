@@ -13,8 +13,9 @@ for(let index = 0; // done before any looping
     index < numberOfSides; // loop while this is true
     index = index + 1) // do after each loop
 {
-  lary.move(80);
+  lary.move(60);
   lary.turn(360/numberOfSides);
+  lary.debug()
 }
 
 // move to the inside of the shape without drawing a line
@@ -27,6 +28,9 @@ lary.setColor(lary.makeColor(128,255,0));
 
 // fill the shape with the new color
 lary.pour();
+
+lary.setColor(lary.makeColor(0,128,255));
+lary.circle(20);
 
 // show the result
 lary.show();
