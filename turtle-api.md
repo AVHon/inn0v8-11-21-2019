@@ -145,8 +145,9 @@ Good to call at the beginning of your game loop.
 ### turn(degrees)
 
 Changes which way the turtle is facing.  
-Positive angles turn the turtle clockwise;  
-negative angles turn it counterclockwise. 360 degrees flips the turtle exactly all the way around,  
+Positive angles turn the turtle counterclockwise;  
+Negative angles turn it clockwise.  
+360 degrees flips the turtle exactly all the way around,  
 facing the same way it was before.
 
 ### turnTo(degrees)
