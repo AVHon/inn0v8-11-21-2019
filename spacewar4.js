@@ -229,4 +229,4 @@ let gameFrame = function(now) {
 	// put pixels on the screen -- must be last!
 	turtle.show();
 };
-window.requestAnimationFrame(gameFrame);
+window.requestAnimationFrame(gameFrame); 
