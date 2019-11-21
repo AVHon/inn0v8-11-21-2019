@@ -21,7 +21,7 @@ let blackHolePull = function(x, y, speedX, speedY){
 	let distance = Math.sqrt(Math.pow(x - blackHole.x, 2) + Math.pow(y - blackHole.y, 2));
 	let force = Math.min(2, 4 / distance);
 	let direction = Math.atan2(blackHole.y - y, x - blackHole.x);
-	console.log(direction*180/Math.PI);
+	//console.log(direction*180/Math.PI);
 	return {speedX: speedX - Math.cos(direction) * force,
 	        speedY: speedY + Math.sin(direction) * force};
 }
@@ -140,15 +140,21 @@ let drawMissiles = function(now){
 		
 		// did the missile hit the ship?
 		if(turtle.colorsEqual(turtle.getCanvasColor(), ship.color)){
-			alert("The ship got hit by a missile!");
+			//alert("The ship got hit by a missile!");
+			turtle.setColor(red);
+			turtle.circle(5);
+			turtle.circle(4);
+			turtle.circle(3);
+			return;
 		}
 		// draw the missile
 		turtle.setColor(red);
 		turtle.tapPen();
 
 		// if the missile is too old, it goes away
-		if(now - missile.born > 10000){} // time is in 1000'ths of a second
-		else{missiles.push(missile);}
+		if(now - missile.born < 10000){// time is in 1000'ths of a second
+			missiles.push(missile);
+		} 
 	}
 }
 
