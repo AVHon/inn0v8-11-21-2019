@@ -1,0 +1,189 @@
+<html>
+<body>
+<canvas id="turtleCanvas" width="360" height="360">
+</canvas>
+<script>
+function Turtle() {
+	"use strict";
+	this.makeColor = function(red, green, blue){return {red:red, green:green, blue:blue};}
+	this.rgbToUint32 = function(rgb){return 255 << 24 | rgb.blue << 16 | rgb.green << 8 | rgb.red;}
+	this.uint32ToRGB = function(ui32){return {red:(ui32 & 0x000000FF), green:(ui32 & 0x0000FF00) >> 8, blue:(ui32 & 0x00FF0000) >> 16};}
+	this.color; this.paintColor;
+	this.setColor = function(rgb){ // object with red, green, and blue from 0 to 255
+		this.color = rgb;
+		this.paintColor = this.rgbToUint32(this.color); // convert color from {r,g,b} to Uint32 for direct pixel manipulation
+	}
+	this.setColor(this.makeColor(0,0,0));
+	this.getColor = function(){return this.color;}
+	this.canvas = document.getElementById("turtleCanvas");
+	this.x = this.canvas.width / 2;
+	this.y = this.canvas.height / 2;
+	this.angle = 0; // stored in degrees
+	this.getX = function(){return this.x;}
+	this.getY = function(){return this.y;}
+	this.getLocation = function(){return {x:this.x, y:this.y};}
+	this.getAngle = function(){return this.angle;}
+	this.debug = function(){
+		console.log(
+			"x=" + this.getX() + " [0-" + (this.canvas.width-1) + "]" +
+			", y=" + this.getY() + " [0-" + (this.canvas.height-1) + "]" +
+			", angle=" + this.getAngle() + " [0,359]" +
+			", red=" + this.color.red + " [0,255]" +
+			", green=" + this.color.green + " [0,255]" +
+			", blue=" + this.color.blue + " [0,255]");
+	}
+	this.context = this.canvas.getContext("2d", {antialias:false, alpha: false});
+	this.imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+	this.pixelData = new Uint32Array(this.imageData.data.buffer); // An A8B8G8R8 view into pixelData, for quick access to pixels.
+	this.indexColor = function(index){return this.pixelData[index] & 0xFFFFFFFF;} // Returns the color of a pixel in pixelData
+	this.pixelIndex = function(x, y){return (Math.floor(y) * this.canvas.width) + Math.floor(x);} // Returns the index of an X-Y. For speed -- internal use only.
+	this.pixelColor = function(x, y){return this.indexColor(this.pixelIndex(Math.floor(x), Math.floor(y)));} // Return's a pixel's color. 0 if out-of-bounds.
+	this.colorIndex = function(index, color){this.pixelData[index] = color;} // Set the color of a pixel with a given index. Internal use
+	this.colorPixel = function(x, y, rgb){ // Safely colors a pixel -- no chance of out-of-bounds writes.
+		if(0<=x && x<this.canvas.width && 0<=y && y<this.canvas.height){
+			this.colorIndex(this.pixelIndex(Math.floor(x), Math.floor(y)), rgb);
+		}
+	}
+	this.getCanvasColor = function(){
+		let color32 = this.pixelColor(this.x, this.y);
+		return this.uint32ToRGB(color32);
+	}
+	this.colorsEqual = function(a, b){
+		return a.red == b.red && a.green == b.green && a.blue == b.blue;
+	}
+	this.textCanvas = new OffscreenCanvas(this.canvas.width, this.canvas.height);
+	this.textContext = this.textCanvas.getContext("2d");
+	this.drawing = true; // Whether or not to leave a trail when moving
+	this.penDown = function(){this.drawing = true;}
+	this.penUp = function(){this.drawing = false;}
+	this.tapPen = function(){ // make a 1-pixel mark
+		this.colorPixel(this.x, this.y, this.paintColor);
+	}
+	// Put pixel data onto the canvas. All other functions should manipulate internal pixel data without changing the canvas.
+	this.show = function(){this.context.putImageData(this.imageData, 0, 0);}
+	
+	// Whatever color the pixel under the turtle is, fill the whole connected region of that color with the turtle's color.
+	// Inspired by the update to https://stackoverflow.com/a/56221940/2350781.
+	// Uses the Scanline Fill algorithm. https://en.wikipedia.org/wiki/Flood_fill#Scanline_fill
+	// Uses buffered Uint32Array for speed -- this function draws more pixels than any other except clear(), and it's conditional.
+	// This was tricky to get right -- lots of off-by-1 errors -- so I've liberally commented it. You're welcome, future me.
+	this.pour = function(){
+		if(this.x < 0 || this.canvas.width <= this.x || this.y < 0 || this.canvas.height <= this.y){return;} // abort if off the screen
+		let pixelData = this.pixelData; // for use in internally-defined functions, where 'this' isn't a Turtle
+		let canvasColor = this.pixelColor(this.x, this.y); // Uint32 of the color to replace
+		// Flood whole rows at a time, left to right. After coloring each row, look above and below for new rows.
+		let indicies = [this.pixelIndex(this.x, this.y)]; // index of row pixels in pixelData
+		while(indicies.length > 0){
+			let index = indicies.shift();	// start with an index that was previously identified as part of a floodable run
+			if(this.indexColor(index) == canvasColor){ // make sure it wasn't already flooded
+				let left = (Math.floor(index / this.canvas.width) * this.canvas.width); // rows can't extend past the canvas's left edge
+				let right = left + this.canvas.width - 1; // rows can't extend past the right edge of the canvas
+				while(index-1 >= left && this.indexColor(index-1) == canvasColor){index--;} // find the left extent of this run
+				left = index;
+				for(index = left; index < right && this.indexColor(index+1) == canvasColor; index++){} // find the right extent of run
+				right = index;
+				let run = new Uint32Array(pixelData.buffer, 4*left, 1+right-left); // make a buffer that includes exactly the run's pixels
+				run.fill(this.paintColor); // efficiently fill the whole run at once
+				let findRuns = function(left, right){ // the indicies of the left and right ends of the row above/below the flooded run
+					let row = new Uint32Array(pixelData.buffer, 4*left, 1+right-left); // make a buffer of the row above the flooded run
+					let col = 0;
+					while(col<row.length){ // search from left to right
+						while(col<row.length && ((row[col] & 0xFFFFFFFF) != canvasColor)){col++;} // look for the start of a floodable run
+						if(col<row.length){indicies.push(left+col);} // add the leftmost visible pixel of a floodable run to queue of runs
+						col++;
+						while(col<row.length && (row[col] & 0xFFFFFFFF) == canvasColor){col++;} // look for the end of the floodable run
+					}
+				}
+				if(index>=this.canvas.width){findRuns(left-this.canvas.width, right-this.canvas.width);} // check the pixels above the run
+				if(index<=(this.canvas.height-1)*this.canvas.width){findRuns(left+this.canvas.width, right+this.canvas.width);} // & below
+			}
+		}
+	}
+	
+	// Fill the entire canvas with the turtle's color.
+	this.clear = function(){
+		this.pixelData.fill(this.paintColor);
+	}
+	// Turn the turtle in degrees. Positive is clockwise, negative is counterclockwise. Angle remains between 0 and 359 degrees.
+	this.turn = function(degrees){
+		this.turnTo(this.angle + degrees);
+	}
+	// Turn the turtle to a specified angle, wrapped to be between 0 and 359 degrees.
+	// 0 is right, 90 is up, 180 is left, 270 is down, 360 is 0 is right.
+	this.turnTo = function(degrees){
+		this.angle = degrees;
+		this.angle -= Math.floor(this.angle / 360) * 360;
+	}
+	this.getAngle = function(){return this.angle;}
+	
+	// Turtle moves specified distance in the direction it is facing. If drawing=true (penDown()), it draws a line along the way.
+	this.move = function(distance){
+		let toRadians = function(degrees){return degrees*Math.PI/180;}
+		let endX = this.x + distance * Math.cos(toRadians(this.angle));
+		let endY = this.y - distance * Math.sin(toRadians(this.angle));
+		this.moveTo(endX, endY);
+	}
+	// The turtle instantly leaps to the specified coordinates, without leaving a line behind, and without changing its direction.
+	this.moveTo = function(endX, endY){
+		if(!this.drawing){
+			this.x = endX;
+			this.y = endY;
+			return;
+		}
+		this.tapPen();
+		// Bresenham's line algorithm, as described on Wikipedia - https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+		let x = Math.floor(this.x);
+		let y = Math.floor(this.y);
+		let eX = Math.floor(endX);
+		let eY = Math.floor(endY);
+		let dx = Math.abs(eX-x); // x distance
+		let sx = Math.sign(eX-x); // x sign
+		let dy = -Math.abs(eY-y);
+		let sy = Math.sign(eY-y);
+		let error = dx+dy;
+		while(x != eX || y != eY){
+			let error2 = 2*error;
+			if(error2>=dy){
+				error += dy;
+				x += sx;
+			}
+			if(error2 <= dx){
+				error += dx;
+				y += sy;
+			}
+			this.colorPixel(x, y, this.paintColor);
+		}
+		this.x = endX;
+		this.y = endY;
+	}
+	// The turtle instantly leaps to the specified coordinates, without leaving a line behind, and without changing its direction.
+	this.jumpTo = function(x, y){
+		this.x = x;
+		this.y = y;
+	}
+	// Draws a circle around the turtle without moving or turning the turtle.
+	// Uses the Midpoint Circle Algorith -- https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+	this.circle = function(radius){
+		let radiusError = function(x,y){return Math.abs(x*x + y*y - radius*radius);}
+		let x=radius, y=0;
+		while(x>=y){
+			// draw 8 octants at once
+			this.colorPixel(this.x+x, this.y+y, this.paintColor);
+			this.colorPixel(this.x-x, this.y+y, this.paintColor);
+			this.colorPixel(this.x+x, this.y-y, this.paintColor);
+			this.colorPixel(this.x-x, this.y-y, this.paintColor);
+			this.colorPixel(this.x+y, this.y+x, this.paintColor);
+			this.colorPixel(this.x-y, this.y+x, this.paintColor);
+			this.colorPixel(this.x+y, this.y-x, this.paintColor);
+			this.colorPixel(this.x-y, this.y-x, this.paintColor);
+			y+=1; // in octant 0 (of 8), y increases on every pixel...
+			if(radiusError(x-1,y)<radiusError(x,y)){
+				x-=1; // and x decreases only when necessary to maintain radius
+			}
+		}
+	}
+}
+	</script>
+	<script src="index.js"></script>
+	</body>
+</html>
