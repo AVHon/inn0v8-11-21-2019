@@ -150,6 +150,7 @@ let drawMissiles = function(now){
 		// draw the missile
 		turtle.setColor(red);
 		turtle.tapPen();
+		turtle.circle(2);
 
 		// if the missile is too old, it goes away
 		if(now - missile.born < 10000){// time is in 1000'ths of a second
