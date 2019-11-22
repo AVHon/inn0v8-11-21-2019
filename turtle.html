@@ -51,8 +51,6 @@ function Turtle() {
 	this.colorsEqual = function(a, b){
 		return a.red == b.red && a.green == b.green && a.blue == b.blue;
 	}
-	this.textCanvas = new OffscreenCanvas(this.canvas.width, this.canvas.height);
-	this.textContext = this.textCanvas.getContext("2d");
 	this.drawing = true; // Whether or not to leave a trail when moving
 	this.penDown = function(){this.drawing = true;}
 	this.penUp = function(){this.drawing = false;}
