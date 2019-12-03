@@ -16,8 +16,8 @@ function Turtle() {
 	this.setColor(this.makeColor(0,0,0));
 	this.getColor = function(){return this.color;}
 	this.canvas = document.getElementById("turtleCanvas");
-	this.x = this.canvas.width / 2;
-	this.y = this.canvas.height / 2;
+	this.x = (this.canvas.width - 1) / 2;
+	this.y = (this.canvas.height - 1) / 2;
 	this.angle = 0; // stored in degrees
 	this.getX = function(){return this.x;}
 	this.getY = function(){return this.y;}
