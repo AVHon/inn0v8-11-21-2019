@@ -93,7 +93,7 @@ function Turtle() {
 					}
 				}
 				if(index>=this.canvas.width){findRuns(left-this.canvas.width, right-this.canvas.width);} // check the pixels above the run
-				if(index<=(this.canvas.height-1)*this.canvas.width){findRuns(left+this.canvas.width, right+this.canvas.width);} // & below
+				if(index<(this.canvas.height-1)*this.canvas.width){findRuns(left+this.canvas.width, right+this.canvas.width);} // & below
 			}
 		}
 	}
