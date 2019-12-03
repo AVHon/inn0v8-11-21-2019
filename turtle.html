@@ -69,6 +69,7 @@ function Turtle() {
 		if(this.x < 0 || this.canvas.width <= this.x || this.y < 0 || this.canvas.height <= this.y){return;} // abort if off the screen
 		let pixelData = this.pixelData; // for use in internally-defined functions, where 'this' isn't a Turtle
 		let canvasColor = this.pixelColor(this.x, this.y); // Uint32 of the color to replace
+		if(canvasColor == this.paintColor){return;} // No need to do any work if current pixel already matches paint color
 		// Flood whole rows at a time, left to right. After coloring each row, look above and below for new rows.
 		let indicies = [this.pixelIndex(this.x, this.y)]; // index of row pixels in pixelData
 		while(indicies.length > 0){
