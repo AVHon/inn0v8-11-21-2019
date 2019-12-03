@@ -75,7 +75,7 @@ function Turtle() {
 		while(indicies.length > 0){
 			let index = indicies.shift();	// start with an index that was previously identified as part of a floodable run
 			if(this.indexColor(index) == canvasColor){ // make sure it wasn't already flooded
-				let left = (Math.floor(index / this.canvas.width) * this.canvas.width); // rows can't extend past the canvas's left edge
+				let left = (Math.floor(index/this.canvas.width) * this.canvas.width); // rows can't extend past the canvas's left edge
 				let right = left + this.canvas.width - 1; // rows can't extend past the right edge of the canvas
 				while(index-1 >= left && this.indexColor(index-1) == canvasColor){index--;} // find the left extent of this run
 				left = index;
