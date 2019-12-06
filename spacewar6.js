@@ -29,7 +29,7 @@ let blackHolePull = function(x, y, speedX, speedY){
 let missiles = [];
 
 let ship = {x: 20, y: 20, angle: 0, speedX: 0, speedY: 0, throttle: 0,
-color: turtle.makeColor(60,197,24), turn:0, firing: false, draw: function(){
+color: turtle.makeColor(60,197,24), turn:0, firing: false, draw: function(now){
 	// be affected by gravity
 	let acceleration = blackHolePull(this.x, this.y, this.speedX, this.speedY);
 	this.speedX = acceleration.speedX;
