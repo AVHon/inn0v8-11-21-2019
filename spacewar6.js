@@ -34,7 +34,7 @@ color: turtle.makeColor(60,197,24), turn:0, firing: false, draw: function(now){
 	let acceleration = blackHolePull(this.x, this.y, this.speedX, this.speedY);
 	this.speedX = acceleration.speedX;
 	this.speedY = acceleration.speedY;
-  
+	
 	// move and turn the ship
 	this.x += this.speedX;
 	this.y += this.speedY;
@@ -74,7 +74,7 @@ color: turtle.makeColor(60,197,24), turn:0, firing: false, draw: function(now){
 
 	// color the inside of the this. Mind that the color doesn't leak out!
 	turtle.setColor(this.color);
-    turtle.pour();
+	turtle.pour();
 
 	// make a white mark in the middle of the ship
 	turtle.setColor(white);
@@ -164,7 +164,7 @@ let drawMissiles = function(now){
 		
 		// did the missile hit the ship?
 		if(turtle.colorsEqual(turtle.getCanvasColor(), ship.color) ||
-          turtle.colorsEqual(turtle.getCanvasColor(), ship2.color)){
+		   turtle.colorsEqual(turtle.getCanvasColor(), ship2.color)){
 			//alert("The ship got hit by a missile!");
 			turtle.setColor(red);
 			turtle.circle(5);
@@ -195,12 +195,12 @@ document.addEventListener("keydown", function(keyEvent){
 	} else if(keyEvent.key == "d"){
 		ship.turn = -5; // turn clockwise (right) with d
 	} else if(keyEvent.key == "ArrowDown"){
-      ship2.throttle = 0.5;
-    }else if(keyEvent.key == "ArrowLeft"){
-      ship2.turn = 5;
-    }else if(keyEvent.key == "ArrowRight"){
-      ship2.turn = -5;
-    }else if(keyEvent.key == "w"){
+		ship2.throttle = 0.5;
+	}else if(keyEvent.key == "ArrowLeft"){
+		ship2.turn = 5;
+	}else if(keyEvent.key == "ArrowRight"){
+		ship2.turn = -5;
+	}else if(keyEvent.key == "w"){
 		ship.firing = true;
 	}else if(keyEvent.key == "ArrowUp"){
 		ship2.firing = true;
@@ -213,12 +213,12 @@ document.addEventListener("keyup", function(keyEvent){
 	} else if(keyEvent.key == "a" || keyEvent.key == "d"){
 		ship.turn = 0; // stop turning when "a" or "d" is released
 	}else if(keyEvent.key == "ArrowDown"){
-      ship2.throttle = 0;
-    }else if(keyEvent.key == "ArrowLeft"){
-      ship2.turn = 0;
-    }else if(keyEvent.key == "ArrowRight"){
-      ship2.turn = 0;
-    }
+		ship2.throttle = 0;
+	}else if(keyEvent.key == "ArrowLeft"){
+		ship2.turn = 0;
+	}else if(keyEvent.key == "ArrowRight"){
+		ship2.turn = 0;
+	}
 })
 
 let gameFrame = function(now) {
@@ -236,10 +236,10 @@ let gameFrame = function(now) {
 
 	// draw the outline of the ship
 	ship.draw(now);
-    ship2.draw(now)
-    drawMissiles(now);
-    drawBlackHole();
-    drawStars();
+	ship2.draw(now)
+	drawMissiles(now);
+	drawBlackHole();
+	drawStars();
 	// put pixels on the screen -- must be last!
 	turtle.show();
 };
